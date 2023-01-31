@@ -1,70 +1,28 @@
-# Getting Started with Create React App
+# "Hello World!" at DeSo
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is super simple 1 page "Hello World" ReactJS app on DeSo Protocol based on this example https://github.com/deso-protocol/deso-examples-react
 
-## Available Scripts
+Let me explain the logic how it all works. 1st of all it is using Identity service and DeSo API both made my DeSo Core Team. Identity serive is separate service used to sign transactions. You need it when you make client side apps running in your browser. To make things easier the app is using @deso-core/identity JavaScript library that you can find here https://www.npmjs.com/package/@deso-core/identity 
 
-In the project directory, you can run:
+If you have time and patience to understand how Identity service works you can review and reverse engineer DeSo frontent app aka BitClout, here is the code https://github.com/deso-protocol/frontend
 
-### `npm start`
+Anyway, this app does two things: 1. Logs user, 2. Makes a post.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+When you login Identity service gives you derived key and using that key you can manage what transactions can be allowed and can set limit of tokens that can be spent. I have no idea how it all works, I just copied this logic from example.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+What you need to know is that in the code below you set limit on how much can be spent and that you can only make posts and you can only make 2 posts, after you make 2 posts, you will need new permission, link to code https://github.com/brootledev/hello-deso/blob/main/src/App.js#L145
 
-### `npm test`
+      const permissionRequestResult = await identity.requestPermissions({
+        GlobalDESOLimit: 0.01 * 1e9,  // 0.01 Deso
+        TransactionCountLimitMap: {
+          SUBMIT_POST: 2,             // getting permission to make 2 posts
+        },
+      });
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+So if you have permission you basically do these 3 steps
 
-### `npm run build`
+1. Create transaction via DeSo API, it can be anything, here this is post transaction `const result = await createPostTransaction(settings)` and if all is fine you will get `TransactionHex` as result
+2. Now you need to use DeSo Identity serives to sign this transaction `const signedTransaction = await identity.signTx(TransactionHex)`
+3. And after this you can finally submit signed transactions also via Identity service `const submittedTransaction = await identity.submitTx(signedTransaction)`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+By the way, when you login using Identity service you only get public key, if you want username, you can fetch that username via DeSo API. It would be cool if Identity service could return username with public key, but it doesn't do that and I don't know why people from DeSo Team can't do it since DeSo Identity window displays usernames.
